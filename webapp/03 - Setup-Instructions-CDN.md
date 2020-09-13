@@ -1,13 +1,6 @@
 The purpose of this guide is to guide you through adding an Azure CDN to your deployment to give your WebApp a gateway / frontend. This follows directly on from "01 - Setup-Instructions-WebApp.md" and is a pre-requisite.
 
 *   [Tools](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Tools)
-*   [Pre-Requisites](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Pre-Requisites)
-    *   [Azure Container Registry](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-AzureContainerRegistry)
-    *   [Service Connections](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-ServiceConnections)
-*   [Code Repository](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CodeRepository)
-*   [Create Dockerfile](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CreateDockerfile)
-    *   [Dockerfile](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Dockerfile)
-    *   [Initialise.sh](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Initialise.sh)
 *   [Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Pipeline)
     *   [Pipeline Start](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-PipelineStart)
     *   [Build Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-BuildPipeline)
@@ -17,8 +10,6 @@ The purpose of this guide is to guide you through adding an Azure CDN to your de
     *   [Parameters.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Parameters.json)
 *   [Commit Your Code](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CommitYourCode)
 *   [Create Your Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CreateYourPipeline)
-*   [Further Learning](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-FurtherLearning)
-*   [Related articles](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Relatedarticles)
 
 Tools
 -----

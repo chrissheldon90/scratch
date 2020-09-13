@@ -18,7 +18,6 @@ The purpose of this guide is to guide you through setting up a basic pipeline to
 *   [Commit Your Code](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CommitYourCode)
 *   [Create Your Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CreateYourPipeline)
 *   [Further Learning](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-FurtherLearning)
-*   [Related articles](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Relatedarticles)
 
 Tools
 -----

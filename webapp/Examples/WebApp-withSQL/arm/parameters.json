@@ -13,5 +13,33 @@
         },
         "serverName": {
             "value": ""
+        },
+        "databaseName": {
+            "value": ""
+        },
+        "collation": {
+            "value": ""
+        },
+        "maxSizeBytes": {
+            "value": ""
+        },
+        "catalogCollation": {
+            "value": ""
+        },
+        "zoneRedundant": {
+            "value": ""
+        },
+        "readScaleOut": {
+            "value": ""
+        },
+        "numberOfReplicas": {
+            "value": ""
+        },
+        "skuName": {
+            "value": ""
+        },
+        "tier": {
+            "value": ""
+        }
     }
 }

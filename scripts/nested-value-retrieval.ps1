@@ -25,6 +25,3 @@ function Retrieve-NestedValue()
 }
 
 Retrieve-NestedValue -object '{"a":{"b":{"c":"d"}}}' -key 'a/b/c'
-
-# $object = '{"a":{"b":{"c":"d"}}}'
-# $key = "a/b/c"

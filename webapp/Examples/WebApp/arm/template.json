@@ -1,0 +1,143 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "image" : {
+        "type": "string",
+      },
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Location for all resources."
+        }
+      },
+      "hostingPlanName": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "dockerRegistryUrl": {
+        "type": "string"
+      },
+      "dockerRegistryUsername": {
+        "type": "string"
+      },
+      "dockerRegistryPassword": {
+        "type": "securestring"
+      }
+    },
+    "resources": [
+        {
+          "apiVersion": "2018-02-01",
+          "type": "Microsoft.Web/serverfarms",
+          "kind": "linux",
+          "name": "[parameters('hostingPlanName')]",
+          "location": "[parameters('location')]",
+          "properties": {
+              "name": "[parameters('hostingPlanName')]",
+              "numberOfWorkers": 1,
+              "reserved": true
+          }
+          "sku": {
+            "name": "[parameters('sku')]"
+          }
+        },
+        {
+        "apiVersion": "2018-11-01",
+        "type": "Microsoft.Web/sites",
+        "kind": "app,linux,container",
+        "name": "[parameters('name')]",
+        "location": "[parameters('location')]",
+        "identity": {
+            "type": "SystemAssigned"
+        },
+        "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]",
+            "siteConfig": {
+            "appSettings": [{
+                "name": "DOCKER_REGISTRY_SERVER_URL",
+                "value": "[parameters('dockerRegistryUrl')]"
+            },
+            {
+                "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                "value": "[parameters('dockerRegistryUsername')]"
+            },
+            {
+                "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                "value": "[parameters('dockerRegistryPassword')]"
+            },],
+            "linuxFxVersion": "[parameters('image')]",
+            "alwaysOn": false
+            }
+        },
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
+        ]
+        },
+        {
+        "type": "Microsoft.Web/sites/config",
+        "apiVersion": "2018-02-01",
+        "name": "[concat(parameters('name'), '/web')]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', parameters('name'))]"
+        ],
+        "properties": {
+            "ipSecurityRestrictions": [
+            {
+                "ipAddress": "[Your IP Address]/32",
+                "action": "Allow",
+                "tag": "Default",
+                "priority": 65000,
+                "name": "Internal Access Control"
+            },
+            {
+                "ipAddress": "Any",
+                "action": "Deny",
+                "priority": 2147483647,
+                "name": "Deny all",
+                "description": "Deny All"
+            }
+            ],
+            "linuxFxVersion": "[parameters('image')]",
+        }
+        },
+        {
+        "name": "[concat(parameters('name'), '-kv')]",
+        "type": "Microsoft.KeyVault/vaults",
+        "apiVersion": "2019-09-01",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', parameters('name'))]"
+        ],
+        "properties": {
+            "tenantId": "[subscription().tenantid]",
+            "sku": {
+            "family": "A",
+            "name": "Standard"
+            },
+            "accessPolicies": [
+            {
+            "tenantId": "[subscription().tenantid]",
+            "objectId": "[reference(concat('Microsoft.Web/sites/', parameters('name')), '2016-03-01', 'Full').identity.principalId]",
+            "permissions": {
+                "keys": [
+                    "Get"
+                ],
+                "secrets": [
+                    "Get"
+                ],
+                "certificates": [
+                    "Get"
+                ]
+                }
+            }],
+            "enabledForDeployment": "false",
+            "enabledForDiskEncryption": "false",
+            "enabledForTemplateDeployment": "true"
+        }
+        }
+    ]
+}

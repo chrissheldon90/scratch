@@ -1,11 +1,21 @@
-function Retrieve-NestedValue($object, $valueName)
+function Retrieve-NestedValue()
 {
-    $valueNameReplace = ($valueName).Replace("/",".")
+    [CmdletBinding()]
+    param (
+        [Parameter()][object]$object,
+        [Parameter()][string]$key
+    )
+    $keyReplace = ($key).Replace("/",".")
     $objectConverted = $object | ConvertFrom-Json
-    Invoke-Expression "`$objectConverted.$valueNameReplace"
+
+    $value = Invoke-Expression "`$objectConverted.$keyReplace"
+    if(!$value) {
+        Write-Host "There is no value for key: $key"
+    }
+    return $value
 }
 
-Retrieve-NestedValue '{"a":{"b":{"c":"d"}}}' 'a/b/c'
+Retrieve-NestedValue -object '{"a":{"b":{"c":"d"}}}' -key 'a/b/c'
 
 # $object = '{"a":{"b":{"c":"d"}}}'
-# $valueName = "a/b/c"
+# $key = "a/b/c"

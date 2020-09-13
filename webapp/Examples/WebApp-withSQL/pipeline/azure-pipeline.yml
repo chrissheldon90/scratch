@@ -1,0 +1,124 @@
+name: 0.1.$(Rev:r) # Sets a name of the build run, incrementing for every build
+trigger:
+- none # Ensures nothing triggeres automatically yet
+
+pool:
+  vmImage: 'ubuntu-latest' # Ensures the build runs on the latest of Microsoft own agent pool
+
+variables:
+- appName: 'learn-demo-webapp' # Sets a variable we can use throughout the pipeline
+
+stages: # Splits the pipeline into stages
+- stage: Build # First Stage
+  displayName: 'Build'
+  jobs: # Splits the stage into jobs
+  - job: Build_Test_DotNet_Docker # First Job
+    displayName: 'Build, Test'
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore Dependencies'
+      inputs:
+        command: restore
+    - task: DotNetCoreCLI@2
+      displayName: 'Build Project'
+      inputs:
+        arguments: '-c Release'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Unit Tests'
+      inputs:
+        command: test
+    - task: Docker@2
+      displayName: 'Docker Build'
+      inputs:
+        containerRegistry: '[Name of Docker Registry Service Connection]'
+        repository: '$(appName)'
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: '$(Build.BuildNumber)'
+    - task: Docker@2
+      displayName: 'Push Image'
+      inputs:
+        containerRegistry: '[Name of Docker Registry Service Connection]'
+        repository: '$(appName)'
+        command: 'push'
+        tags: '$(Build.BuildNumber)'
+- stage: Deploy
+  displayName: Deploy
+  variables:
+    ResourceGroupName: $(appName)-rg
+    AcrName: [Name of your Azure Container Registry]
+    AcrRGName: [Name of your Azure Container Registry Resource Group]
+    parameters.image.value: "DOCKER|$(AcrName).azurecr.io/$(appName):$(Build.BuildNumber)"
+    parameters.hostingPlanName.value: $(appName)-sp
+    parameters.name.value: $(appName)
+    parameters.dockerRegistryUrl.value: https://$(AcrName).azurecr.io
+    parameters.dockerRegistryUsername.value: $(AcrName)
+    parameters.administratorLogin.value: "SQLUSERNAME"
+    parameters.serverName.value: "SQLSERVERNAME"
+    parameters.databaseName.value: "SQLDATABSENAME"
+    parameters.collation.value:"SQL_Latin1_General_CP1_CI_AS"
+    parameters.maxSizeBytes.value: "2147483648"
+    parameters.catalogCollation.value: "SQL_Latin1_General_CP1_CI_AS"
+    parameters.zoneRedundant.value: "false"
+    parameters.readScaleOut.value: "Disabled"
+    parameters.numberOfReplicas.value: "0"
+    parameters.skuName.value: "Basic"
+    parameters.tier.value: "Basic"
+  jobs:
+  - deployment: Deploy ARM Template
+    displayName: 'Deploy Web App ARM Template'
+    environment: [Environment Name]
+    strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureCLI@2
+          displayName: 'Get Docker Registry Key'
+          inputs:
+            azureSubscription: '[Name of your subscription Service Connection]'
+            scriptType: 'pscore'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              $key = az acr credential show --name $(AcrName) --resource-group $(AcrRGName) --query passwords[0].value
+              $key = $key.Replace('"','')
+              echo "##vso[task.setvariable variable=parameters.dockerRegistryPassword.value; issecret=true;]$key"
+        - task: FileTransform@2
+          displayName: 'Transform Arm Template Parameters'
+          inputs:
+            folderPath: '$(Pipeline.Workspace)/'
+            xmlTransformationRules: 
+            jsonTargetFiles: '**/parameters.json'
+        - task: AzureResourceManagerTemplateDeployment@3
+          displayName: 'Deploy SQL Server & Database'
+          inputs:
+            deploymentScope: 'Resource Group'
+            ConnectedServiceName: '[Name of your subscription Service Connection]'
+            action: 'Create Or Update Resource Group'
+            resourceGroupName: '$(ResourceGroupName)'
+            location: 'North Europe'
+            templateLocation: 'Linked artifact'
+            csmFile: '$(Pipeline.Workspace)/arm/sql-template.json'
+            csmParametersFile: '$(Pipeline.Workspace)/arm/sql-parameters.json'
+            deploymentMode: 'Incremental'
+        - task: AzureResourceManagerTemplateDeployment@3
+          displayName: 'Deploy WebApp'
+          inputs:
+            deploymentScope: 'Resource Group'
+            ConnectedServiceName: '[Name of your subscription Service Connection]'
+            action: 'Create Or Update Resource Group'
+            resourceGroupName: '$(ResourceGroupName)'
+            location: 'North Europe'
+            templateLocation: 'Linked artifact'
+            csmFile: '$(Pipeline.Workspace)/arm/web-template.json'
+            csmParametersFile: '$(Pipeline.Workspace)/arm/web-parameters.json'
+            deploymentMode: 'Incremental'
+        - task: AzureCLI@2
+          displayName: 'Set SQL Server Permissions'
+          inputs:
+            azureSubscription: ${{ variables.SqlAzureSubscription }}
+            scriptType: 'pscore'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              $webAppIdentityObjectIdJs = '$(webAppIdentityObjectId)'
+              $objectId = ($webAppIdentityObjectIdJs | ConvertFrom-Json).webAppIdentityObjectId.value
+              az sql server ad-admin create --resource-group $(SqlServerResourceGroup) --server-name $(serverName) --display-name $(appName) --object-id $objectId

@@ -13,8 +13,8 @@ The purpose of this guide is to guide you through setting up a basic pipeline to
     *   [Build Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-BuildPipeline)
     *   [Deployment Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-DeploymentPipeline)
 *   [Azure Resource Manager Template](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-AzureResourceManagerTemplate)
-    *   [Template.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Template.json)
-    *   [Parameters.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Parameters.json)
+    *   [web-template.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-web-template.json)
+    *   [web-parameters.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-web-parameters.json)
 *   [Commit Your Code](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CommitYourCode)
 *   [Create Your Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CreateYourPipeline)
 *   [Further Learning](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-FurtherLearning)
@@ -283,7 +283,7 @@ Add the following code to the end of the same file “azure-pipeline.yaml”
             inputs:
               folderPath: '$(Pipeline.Workspace)/'
               xmlTransformationRules: 
-              jsonTargetFiles: '**/parameters.json'
+              jsonTargetFiles: '**/web-parameters.json'
           - task: AzureResourceManagerTemplateDeployment@3
             displayName: 'Deploy WebApp'
             inputs:
@@ -293,8 +293,8 @@ Add the following code to the end of the same file “azure-pipeline.yaml”
               resourceGroupName: '$(ResourceGroupName)'
               location: 'North Europe'
               templateLocation: 'Linked artifact'
-              csmFile: '$(Pipeline.Workspace)/arm/template.json'
-              csmParametersFile: '$(Pipeline.Workspace)/arm/parameters.json'
+              csmFile: '$(Pipeline.Workspace)/arm/web-web-template.json'
+              csmParametersFile: '$(Pipeline.Workspace)/arm/web-web-parameters.json'
               deploymentMode: 'Incremental'
 ```
 
@@ -320,20 +320,20 @@ Firstly, we need to create a folder structure. There is no enforced rule for how
     
 2.  Right click, click New Folder and call it “arm”
     
-3.  Click click on the arm folder and click New File, call this “template.json”
+3.  Click click on the arm folder and click New File, call this “web-template.json”
     
 4.  Then open the file to edit.
     
 
 This is another large part to our tutorial, so I have split the assembly of the template into sections.
 
-### Template.json
+### web-template.json
 
-First of all, the top of our ARM Template defines the scheme, version and parameters. Add the following code to the start of the file “Template.json”
+First of all, the top of our ARM Template defines the scheme, version and parameters. Add the following code to the start of the file “web-template.json”
 
 ```
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentweb-template.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
       "image" : {
@@ -366,7 +366,7 @@ First of all, the top of our ARM Template defines the scheme, version and parame
 
 We the need to start adding resources to our ARM Template, it doesn't really matter which order these resources go in, as we add dependencies to each resource, which determines the order for us.
 
-Add the following code to the end of the same file “template.json”
+Add the following code to the end of the same file “web-template.json”
 
 ```
   "resources": [
@@ -389,7 +389,7 @@ Add the following code to the end of the same file “template.json”
 
 This is the resource code for the app service plan.
 
-Add the following code to the end of the same file “template.json”
+Add the following code to the end of the same file “web-template.json”
 
 ```
   {
@@ -456,7 +456,7 @@ Add the following code to the end of the same file “template.json”
 
 In this code we are adding 2 resources, the web app itself and web app config. The config includes IP Whitelisting and is one of various ways of restricting access to a web app. This whitelist can be changed or removed, for now, add your external IP address. You can get that here - [http://ipv4.plain-text-ip.com/](http://ipv4.plain-text-ip.com/)
 
-Finally add the following code to the end of the same file “template.json”
+Finally add the following code to the end of the same file “web-template.json”
 
 ```
       {
@@ -500,11 +500,11 @@ Finally add the following code to the end of the same file “template.json”
 
 This last part of the ARM Template is optional, but it is a very good way of securely storing secrets which the app may need. For example, certificates or connection strings. Having the KeyVault in place like this enabled us to take advantage of managed identities and automatically gives access to the web app to the KeyVault. Save the file
 
-### Parameters.json
+### web-parameters.json
 
 Now we need to create a parameters file.
 
-1.  Click click on the arm folder and click New File, call this “parameters.json”
+1.  Click click on the arm folder and click New File, call this “web-parameters.json”
     
 2.  Then open the file to edit.
     
@@ -513,7 +513,7 @@ Now we need to create a parameters file.
 
 ```
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentweb-parameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "image": {

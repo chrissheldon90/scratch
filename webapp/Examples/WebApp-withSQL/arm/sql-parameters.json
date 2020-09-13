@@ -9,8 +9,12 @@
             "value": null
         },
         "location": {
-            "value": null
-        },
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+              "description": "Location for all resources."
+            }
+          },
         "serverName": {
             "value": ""
         },

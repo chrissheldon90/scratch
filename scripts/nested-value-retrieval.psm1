@@ -24,4 +24,4 @@ function Retrieve-NestedValue()
     $valueExpression
 }
 
-Retrieve-NestedValue -object '{"a":{"b":{"c":"d"}}}' -key 'a/b/c'
+#Example - Retrieve-NestedValue -object '{"a":{"b":{"c":"d"}}}' -key 'a/b/c'

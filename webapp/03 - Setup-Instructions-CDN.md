@@ -1,7 +1,5 @@
 The purpose of this guide is to guide you through adding an Azure CDN to your deployment to give your WebApp a gateway / frontend. This follows directly on from "01 - Setup-Instructions-WebApp.md" and is a pre-requisite.
 
-/\*<!\[CDATA\[\*/ div.rbtoc1600016804876 {padding: 0px;} div.rbtoc1600016804876 ul {list-style: disc;margin-left: 0px;} div.rbtoc1600016804876 li {margin-left: 0px;padding-left: 0px;} /\*\]\]>\*/
-
 *   [Tools](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Tools)
 *   [Pre-Requisites](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Pre-Requisites)
     *   [Azure Container Registry](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-AzureContainerRegistry)

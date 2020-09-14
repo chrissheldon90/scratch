@@ -496,27 +496,3 @@ Now the code is committed, we are ready to create our pipeline, do the following
 8.  In the new window, the default branch should be selected by default, then in the Path dropdown choose your pipeline file (azure-pipeline.yaml) and click continue.
     
 9.  Now click Run. This will save your pipeline for easy reuse and kick off the process of building your code, deploying and provisioning of your brand new web app.
-    
-
-Further Learning
-----------------
-
-There are a lot more considerations for this type process which are not in the scope of this walkthrough, in order to get full advantage of Azure Devops and Azure itself. Feel free to look into the following to improve the process;
-
-1.  Lint testing - For the pipeline process / ARM Templates
-    
-2.  Code Coverage Checks
-    
-3.  Acceptance / Integration / Performance Tests - These can be introduced for further environment deployments
-    
-4.  Azure Devops Pipeline Templates - For Steps & Variables
-    
-5.  Git branching.
-    
-6.  Slot Deployments - To allow an uninterruptible deployment
-    
-7.  Container Security Scanning - Using tools like Snyk or Aquasec, we can scan our image in our pipeline prior to it being pushed to the Azure Container Registry
-    
-8.  Application Level Logging - With Log Analytics
-    
-9.  Managed Identities - With Web Apps and Keyvault

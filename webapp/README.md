@@ -106,3 +106,28 @@ To start with, we will need a code repository. Azure Devops comes with it’s ow
     
 
 We are now ready to start adding our code. This tutorial does not go into details about created a dotnet core app, it assumes you already have one. Therefore the next part of the tutorial will carry on after the dotnet app source code has been copied to this repository.
+
+Further Learning
+----------------
+
+There are a lot more considerations for this type process which are not in the scope of this walkthrough, in order to get full advantage of Azure Devops and Azure itself. Feel free to look into the following to improve the process;
+
+1.  Lint testing - For the pipeline process / ARM Templates
+    
+2.  Code Coverage Checks
+    
+3.  Acceptance / Integration / Performance Tests - These can be introduced for further environment deployments
+    
+4.  Azure Devops Pipeline Templates - For Steps & Variables
+    
+5.  Git branching.
+    
+6.  Slot Deployments - To allow an uninterruptible deployment
+    
+7.  Container Security Scanning - Using tools like Snyk or Aquasec, we can scan our image in our pipeline prior to it being pushed to the Azure Container Registry
+    
+8.  Application Level Logging - With Log Analytics
+    
+9.  Managed Identities - With Web Apps and Keyvault
+
+10. Azure Application Gateway or Azure Frontdoor for securing your applications further

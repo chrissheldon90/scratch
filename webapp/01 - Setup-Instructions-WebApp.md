@@ -1,4 +1,4 @@
-The purpose of this guide is to guide you through setting up a basic pipeline to build and deploy a containerised WebApp securely. Making use of Git, Azure Pipelines (Yaml), ARM Templates, Dotnet, Docker and giving you an idea of how you can integrate securely with Azure Resources such as Storage Accounts and KeyVault.
+# WebApp Instructions
 
 *   [Tools](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Tools)
 *   [Pre-Requisites](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Pre-Requisites)

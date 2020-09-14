@@ -2,16 +2,15 @@
 
 The purpose of this guide is to guide you through adding an Azure CDN to your deployment to give your WebApp a gateway / frontend. This follows directly on from "01 - Setup-Instructions-WebApp.md" and is a pre-requisite.
 
-*   [Tools](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Tools)
-*   [Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Pipeline)
-    *   [Pipeline Start](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-PipelineStart)
-    *   [Build Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-BuildPipeline)
-    *   [Deployment Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-DeploymentPipeline)
-*   [Azure Resource Manager Template](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-AzureResourceManagerTemplate)
-    *   [Template.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Template.json)
-    *   [Parameters.json](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-Parameters.json)
-*   [Commit Your Code](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CommitYourCode)
-*   [Create Your Pipeline](#DeployAContainerizedDotnetAzureWebAppUsingAzurePipelines-CreateYourPipeline)
+*   [Tools](#Tools)
+*   [Pipeline](#Pipeline)
+    *   [Build Pipeline](#BuildPipeline)
+    *   [Deployment Pipeline](#DeploymentPipeline)
+*   [Azure Resource Manager Template](#AzureResourceManagerTemplate)
+    *   [CDN-Template.json](#CDN-Template.json)
+    *   [CDN-Parameters.json](#CDN-Parameters.json)
+*   [Commit Your Code](#CommitYourCode)
+*   [Create Your Pipeline](#CreateYourPipeline)
 
 Tools
 -----

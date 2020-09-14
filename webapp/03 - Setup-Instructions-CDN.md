@@ -39,21 +39,219 @@ A pipeline is what does all the work so you don't have to, from; building your d
 
 This is a rather large part of the tutorial, so it is split. We will be working on the same part in both stages as there is no need for two separate pipelines.
 
-### Pipeline Start
-
-
 ### Build Pipeline
 
+No changes are required
 
 ### Deployment Pipeline
 
+Add the following variables to azure-pipeline.yml
 
-### Template.json
+```
+parameters.cdnName.value: "CDN_NAME"
+parameters.customdomain.value: "YOUR_EXTERNAL_DOMAIN_NAME"
+cdnResourceGroup: "YOUR_CDN_RESOURCE_GROUP"
+```
 
+Add the following to azure-pipeline.yml after the WebApp task. This is the deploy the CDN Profile and Endpoint
 
-### Parameters.json
+```
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: 'Deploy CDN'
+  inputs:
+    deploymentScope: 'Resource Group'
+    ConnectedServiceName: '[Name of your subscription Service Connection]'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: '$(cdnResourceGroup)'
+    location: 'North Europe'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(Pipeline.Workspace)/arm/cdn-template.json'
+    csmParametersFile: '$(Pipeline.Workspace)/arm/cdn-parameters.json'
+    deploymentMode: 'Incremental'
+```
+### Optional Deployment Pipeline Changes
 
+There are lots of things we can do with the CDN. The below are optional, but are great ways of showing how we automate certain tasks in the Azure Devops pipeline and ensure they are idempotent, outside of the ARM template.
 
+#### Enable Custom Domain HTTPS
+
+Add the following to azure-pipeline.yml at the end, this will enable HTTPS.
+
+```
+- task: AzureCLI@2
+  displayName: 'Enable CDN Custom Domain HTTPS'
+  inputs:
+    azureSubscription: '[Name of your subscription Service Connection]'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $checkCommand = az cdn custom-domain list --profile-name $(cdnName) --resource-group $(cdnResourceGroup) --endpoint $(name)
+      $checkMatch = ($checkCommand | ConvertFrom-Json).customHttpsProvisioningState -eq "Enabled"
+      if(!$checkMatch) {
+        Write-Host "CDN Custom Domain HTTPS for $(name) is not enabled. Script will enable."
+        az cdn custom-domain enable-https --endpoint-name $(name) `
+          --name "$(name)-$(parameters.customdomain.value)" `
+          --profile-name $(cdnName) `
+          --resource-group $(cdnResourceGroup)
+      } else {
+        Write-Host "CDN Custom Domain HTTS for $(name) is enabled."
+      }
+```
+
+One really neat feature of Azure CDN is the ability to enable HTTPS on your custom domain, it will create you a certificate for your domain at no additional cost. 
+
+#### Purge CDN Endpoint
+
+Another useful feature is to automate purging your CDN endpoint after a deployment. This will ensure the changes deployed will go live instantly.
+
+Add the following to azure-pipeline.yml at the end.
+
+```
+- task: AzureCLI@2
+  displayName: 'Purge CDN Endpoint'
+  inputs:
+    azureSubscription: '[Name of your subscription Service Connection]'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az cdn endpoint purge --name "$(name)" `
+          --profile-name $(cdnName) `
+          --resource-group $(cdnResourceGroup) `
+          --content-paths '/*' `
+          --no-wait
+```
+
+### CDN-Template.json
+
+1.  In VS Code, click View - Explorer, you should now see the root of your repository on the left hand side.
+    
+2.  Right click, click New Folder and call it “arm”
+    
+3.  Click click on the arm folder and click New File, call this "sql-template.json”
+    
+4.  Then open the file to edit.
+
+First of all, the top of our ARM Template defines the scheme, version and parameters. Add the following code to the start of the file cdn-template.json”
+
+```
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": {
+        "type": "string"
+      },
+      "cdnName": {
+        "type": "string"
+      },
+      "customDomain": {
+        "type": "string"
+      }
+    },
+```
+We the need to start adding resources to our ARM Template, it doesn't really matter which order these resources go in, as we add dependencies to each resource, which determines the order for us.
+
+Add the following code to the end of the same file "cdn-template.json”
+
+```
+"resources": [
+      {
+        "type": "Microsoft.Cdn/profiles",
+        "apiVersion": "2019-12-31",
+        "name": "[parameters('cdnName')]",
+        "location": "Global",
+        "sku": {
+            "name": "Standard_Microsoft"
+        },
+        "properties": {}
+      },
+      {
+        "type": "Microsoft.Cdn/profiles/endpoints",
+        "apiVersion": "2019-12-31",
+        "name": "[concat(parameters('cdnName'), '/', parameters('name'))]",
+        "location": "Global",
+        "dependsOn": [
+            "[resourceId('Microsoft.Cdn/profiles', parameters('cdnName'))]"
+        ],
+        "properties": {
+            "originHostHeader": "[concat(parameters('name'), '.azurewebsites.net')]",
+            "isHttpAllowed": true,
+            "isHttpsAllowed": true,
+            "queryStringCachingBehavior": "IgnoreQueryString",
+            "origins": [
+                {
+                    "name": "[concat(parameters('name'), '-azurewebsites-net)]",
+                    "properties": {
+                        "hostName": "[concat(parameters('name'), '.azurewebsites.net)]",
+                        "originHostHeader": "[concat(parameters('name'), '.azurewebsites.net)]",
+                        "priority": 1,
+                        "weight": 1000,
+                        "enabled": true
+                    }
+                }
+            ],
+            "optimizationType": "GeneralWebDelivery"
+        }
+      },
+      {
+        "type": "Microsoft.Cdn/profiles/endpoints/customdomains",
+        "apiVersion": "2019-12-31",
+        "name": "[concat(parameters('cdnName'), '/', parameters('name'), '/', parameters('customDomain'))]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('cdnName'), parameters('name'))]",
+            "[resourceId('Microsoft.Cdn/profiles', parameters('cdnName'))]"
+        ],
+        "properties": {
+            "hostName": "[parameters('customDomain')]"
+        }
+      },
+      {
+        "type": "Microsoft.Cdn/profiles/endpoints/origins",
+        "apiVersion": "2019-12-31",
+        "name": "[concat(parameters('cdnName'), '/', parameters('name'), '/', parameters('name'), '-azurewebsites-net')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('cdnName'), parameters('name'))]",
+            "[resourceId('Microsoft.Cdn/profiles', parameters('cdnName'))]"
+        ],
+        "properties": {
+            "hostName": "[concat(parameters('name'), '.azurewebsites.net')]",
+            "enabled": true,
+            "priority": 1,
+            "weight": 1000,
+            "originHostHeader": "[concat(parameters('name'), '.azurewebsites.net')]"
+        }
+      }
+    ]
+  }
+```
+
+### CDN-Parameters.json
+
+Now we need to create a parameters file.
+
+1.  Click click on the arm folder and click New File, call this “cdn-parameters.json”
+    
+2.  Then open the file to edit.
+    
+3.  Add the following code and save the file.
+
+```
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "value": ""
+        },
+        "cdnName": {
+            "value": null
+        },
+        "customDomain": {
+            "value": null
+        }
+    }
+}
+```
 
 Commit Your Code
 ----------------

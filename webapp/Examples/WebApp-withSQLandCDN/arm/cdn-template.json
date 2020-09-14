@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": {
+        "type": "string"
+      },
+      "cdnName": {
+        "type": "string"
+      },
+      "customDomain": {
+        "type": "string"
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Cdn/profiles",
+        "apiVersion": "2019-12-31",
+        "name": "[parameters('cdnName')]",
+        "location": "Global",
+        "sku": {
+            "name": "Standard_Microsoft"
+        },
+        "properties": {}
+      },
+      {
+        "type": "Microsoft.Cdn/profiles/endpoints",
+        "apiVersion": "2019-12-31",
+        "name": "[concat(parameters('cdnName'), '/', parameters('name'))]",
+        "location": "Global",
+        "dependsOn": [
+            "[resourceId('Microsoft.Cdn/profiles', parameters('cdnName'))]"
+        ],
+        "properties": {
+            "originHostHeader": "[concat(parameters('name'), '.azurewebsites.net')]",
+            "isHttpAllowed": true,
+            "isHttpsAllowed": true,
+            "queryStringCachingBehavior": "IgnoreQueryString",
+            "origins": [
+                {
+                    "name": "[concat(parameters('name'), '-azurewebsites-net)]",
+                    "properties": {
+                        "hostName": "[concat(parameters('name'), '.azurewebsites.net)]",
+                        "originHostHeader": "[concat(parameters('name'), '.azurewebsites.net)]",
+                        "priority": 1,
+                        "weight": 1000,
+                        "enabled": true
+                    }
+                }
+            ],
+            "optimizationType": "GeneralWebDelivery"
+        }
+      },
+      {
+        "type": "Microsoft.Cdn/profiles/endpoints/customdomains",
+        "apiVersion": "2019-12-31",
+        "name": "[concat(parameters('cdnName'), '/', parameters('name'), '/', parameters('customDomain'))]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('cdnName'), parameters('name'))]",
+            "[resourceId('Microsoft.Cdn/profiles', parameters('cdnName'))]"
+        ],
+        "properties": {
+            "hostName": "[parameters('customDomain')]"
+        }
+      },
+      {
+        "type": "Microsoft.Cdn/profiles/endpoints/origins",
+        "apiVersion": "2019-12-31",
+        "name": "[concat(parameters('cdnName'), '/', parameters('name'), '/', parameters('name'), '-azurewebsites-net')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('cdnName'), parameters('name'))]",
+            "[resourceId('Microsoft.Cdn/profiles', parameters('cdnName'))]"
+        ],
+        "properties": {
+            "hostName": "[concat(parameters('name'), '.azurewebsites.net')]",
+            "enabled": true,
+            "priority": 1,
+            "weight": 1000,
+            "originHostHeader": "[concat(parameters('name'), '.azurewebsites.net')]"
+        }
+      }
+    ]
+  }

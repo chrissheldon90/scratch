@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "administratorLogin": {
+            "value": ""
+        },
+        "administratorLoginPassword": {
+            "value": null
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+              "description": "Location for all resources."
+            }
+          },
+        "serverName": {
+            "value": ""
+        },
+        "databaseName": {
+            "value": ""
+        },
+        "collation": {
+            "value": ""
+        },
+        "maxSizeBytes": {
+            "value": ""
+        },
+        "catalogCollation": {
+            "value": ""
+        },
+        "zoneRedundant": {
+            "value": ""
+        },
+        "readScaleOut": {
+            "value": ""
+        },
+        "numberOfReplicas": {
+            "value": ""
+        },
+        "skuName": {
+            "value": ""
+        },
+        "tier": {
+            "value": ""
+        }
+    }
+}

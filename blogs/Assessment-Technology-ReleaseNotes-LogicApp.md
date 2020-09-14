@@ -1,10 +1,10 @@
-#Automating Release Notes In Azure Devops To Confluence - High Level Technical 
+# Automating Release Notes In Azure Devops To Confluence - High Level Technical 
 
-##Scenario
+## Scenario
 
 When a deployment pipelines completes a release to production, the pipeline will have associated work items (from Pull Requests) we want these associated work items to appear in a "Release Document" in an area on confluence after the release.
 
-##Implementation
+## Implementation
 
 ### Service Hook
 

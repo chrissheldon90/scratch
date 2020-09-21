@@ -53,12 +53,24 @@ stages: # Splits the pipeline into stages
     parameters.name.value: $(appName)
     parameters.dockerRegistryUrl.value: https://$(AcrName).azurecr.io
     parameters.dockerRegistryUsername.value: $(AcrName)
+    parameters.wafPolicyName.value: "WAF_POLICY_NAME"
+    parameters.frontDoorName.value: "YOUR_FRONT_DOOR_NAME"
+    parameters.appNameEun.value: $(appName)-eun
+    parameters.appNameEuw.value: $(appName)-euw
+    waffdResourceGroup: "YOUR_WAF_FRONT_DOOR_RESOURCE_GROUP"
   jobs:
   - deployment: DeployARMTemplate-Web
     displayName: 'Deploy Web App ARM Template'
     environment: [Environment Name]
     strategy:
-    runOnce:
+      maxParallel: 1:
+      matrix
+        EUN:
+          appName: $(parameters.appNameEun.value)
+          location: North Europe
+        EUW:
+          appName: $(parameters.appNameEuw.value)
+          location: West Europe
       deploy:
         steps:
         - task: AzureCLI@2
@@ -84,8 +96,35 @@ stages: # Splits the pipeline into stages
             ConnectedServiceName: '[Name of your subscription Service Connection]'
             action: 'Create Or Update Resource Group'
             resourceGroupName: '$(ResourceGroupName)'
-            location: 'North Europe'
+            location: '$(location)'
             templateLocation: 'Linked artifact'
-            csmFile: '$(Pipeline.Workspace)/arm/template.json'
-            csmParametersFile: '$(Pipeline.Workspace)/arm/parameters.json'
+            csmFile: '$(Pipeline.Workspace)/arm/web-template.json'
+            csmParametersFile: '$(Pipeline.Workspace)/arm/web-parameters.json'
             deploymentMode: 'Incremental'
+        - deployment: DeployARMTemplate-WAFFD
+          displayName: 'Deploy WAF & Front Door ARM Template'
+          dependsOn: DeployARMTemplate-Web
+          environment: [Environment Name]
+          strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: FileTransform@2
+                displayName: 'Transform Arm Template Parameters'
+                inputs:
+                  folderPath: '$(Pipeline.Workspace)/'
+                  xmlTransformationRules: 
+                  jsonTargetFiles: '**/parameters.json'
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy WAF & Front Door'
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  ConnectedServiceName: '[Name of your subscription Service Connection]'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(waffdResourceGroup)'
+                  location: 'North Europe'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(Pipeline.Workspace)/arm/waffd-template.json'
+                  csmParametersFile: '$(Pipeline.Workspace)/arm/waffd-parameters.json'
+                  deploymentMode: 'Incremental'
+  

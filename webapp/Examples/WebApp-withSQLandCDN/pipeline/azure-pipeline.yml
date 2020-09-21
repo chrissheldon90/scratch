@@ -68,7 +68,7 @@ stages: # Splits the pipeline into stages
     parameters.customdomain.value: "YOUR_EXTERNAL_DOMAIN_NAME"
     cdnResourceGroup: "YOUR_CDN_RESOURCE_GROUP"
   jobs:
-  - deployment: Deploy ARM Template
+  - deployment: DeployARMTemplate-Web
     displayName: 'Deploy Web App ARM Template'
     environment: [Environment Name]
     strategy:

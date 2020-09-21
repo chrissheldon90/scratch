@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "image": {
+            "value": "WILL BE REPLACED"
+        },
+        "name": {
+            "value": "WILL BE REPLACED"
+        },
+        "hostingPlanName": {
+            "value": "WILL BE REPLACED"
+        },
+        "dockerRegistryUrl": {
+            "value": "WILL BE REPLACED"
+        },
+        "dockerRegistryUsername": {
+            "value": "WILL BE REPLACED"
+        },
+        "dockerRegistryPassword": {
+            "value": "WILL BE REPLACED"
+        }
+    }
+}

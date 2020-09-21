@@ -1,0 +1,177 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "wafPolicyName": {
+        "type": "string"
+      },
+      "frontDoorName": {
+        "type": "string"
+      },
+      "appNameEun": {
+        "type": "string"
+      },
+      "appNameEuw": {
+        "type": "string"
+      }
+    },
+    "resources": [
+      {
+          "apiVersion": "2020-04-01",
+          "type": "Microsoft.Network/frontDoorWebApplicationFirewallPolicies",
+          "name": "[parameters('wafPolicyname')]",
+          "location": "global",
+          "properties": {
+              "policySettings": {
+                  "enabledState": "Enabled",
+                  "mode": "Detection",
+                  "redirectUrl": null,
+                  "customBlockResponseStatusCode": 403,
+                  "customBlockResponseBody": null
+              },
+              "customRules": {
+                  "rules": []
+              },
+              "managedRules": {
+                  "managedRuleSets": [
+                      {
+                          "ruleSetType": "DefaultRuleSet",
+                          "ruleSetVersion": "1.0",
+                          "ruleGroupOverrides": [],
+                          "exclusions": []
+                      }
+                  ]
+              }
+          }
+      },
+      {
+        "apiVersion": "2020-05-01",
+        "type": "Microsoft.Network/frontdoors",
+        "name": "[parameters('frontDoorName')]",
+        "location": "global",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/frontDoorWebApplicationFirewallPolicies', parameters('wafPolicyname'))]"
+        ],
+        "properties": {
+            "frontdoorId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'))]",
+            "friendlyName": "[parameters('frontDoorName')]",
+            "enabledState": "Enabled",
+            "healthProbeSettings": [
+                {
+                    "name": "healthProbeSettings-1600163515023",
+                    "properties": {
+                        "path": "/",
+                        "protocol": "Https",
+                        "intervalInSeconds": 30,
+                        "healthProbeMethod": "Head",
+                        "enabledState": "Enabled"
+                    },
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/healthProbeSettings/healthProbeSettings-1600163515023')]"
+                }
+            ],
+            "loadBalancingSettings": [
+                {
+                    "name": "loadBalancingSettings-1600163515023",
+                    "properties": {
+                        "sampleSize": 4,
+                        "successfulSamplesRequired": 2,
+                        "additionalLatencyMilliseconds": 0
+                    },
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/loadBalancingSettings/loadBalancingSettings-1600163515023')]"
+                }
+            ],
+            "frontendEndpoints": [
+                {
+                    "name": "[concat(parameters('frontDoorName'), '-azurefd-net')]",
+                    "properties": {
+                        "hostName": "[concat(parameters('frontDoorName'), '-azurefd-net')]",
+                        "sessionAffinityEnabledState": "Disabled",
+                        "sessionAffinityTtlSeconds": 0,
+                        "webApplicationFirewallPolicyLink": {
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoorwebapplicationfirewallpolicies/', parameters('wafPolicyName'))]"
+                        },
+                        "customHttpsConfiguration": null
+                    },
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/frontendEndpoints/', parameters('frontDoorName'), '-azurefd-net')]"
+                }
+            ],
+            "backendPools": [
+                {
+                    "name": "[concat(parameters('frontDoorName'), '-bk')]",
+                    "properties": {
+                        "backends": [
+                            {
+                                "address": "[concat(parameters('appNameEun'), '.azurewebsites.net')]",
+                                "privateLinkResourceId": null,
+                                "privateLinkLocation": null,
+                                "privateEndpointStatus": null,
+                                "privateLinkApprovalMessage": null,
+                                "enabledState": "Enabled",
+                                "httpPort": 80,
+                                "httpsPort": 443,
+                                "priority": 1,
+                                "weight": 50,
+                                "backendHostHeader": "[concat(parameters('appNameEun'), '.azurewebsites.net')]"
+                            },
+                            {
+                                "address": "[concat(parameters('appNameEuw'), '-back.azurewebsites.net')]",
+                                "privateLinkResourceId": null,
+                                "privateLinkLocation": null,
+                                "privateEndpointStatus": null,
+                                "privateLinkApprovalMessage": null,
+                                "enabledState": "Enabled",
+                                "httpPort": 80,
+                                "httpsPort": 443,
+                                "priority": 1,
+                                "weight": 50,
+                                "backendHostHeader": "[concat(parameters('appNameEuw'), '-back.azurewebsites.net')]"
+                            }
+                        ],
+                        "loadBalancingSettings": {
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/loadBalancingSettings/loadBalancingSettings-1600163515023')]"
+                        },
+                        "healthProbeSettings": {
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/healthProbeSettings-1600163515023')]"
+                        }
+                    },
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/backendPools/', parameters('frontDoorName'), '-bk')]"
+                }
+            ],
+            "routingRules": [
+                {
+                    "name": "[concat(parameters('frontDoorName'), '-rr')]",
+                    "properties": {
+                        "frontendEndpoints": [
+                            {
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/frontendEndpoints/', parameters('frontDoorName'), '-azurefd-net')]"
+                            }
+                        ],
+                        "acceptedProtocols": [
+                            "Http",
+                            "Https"
+                        ],
+                        "patternsToMatch": [
+                            "/*"
+                        ],
+                        "enabledState": "Enabled",
+                        "routeConfiguration": {
+                            "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
+                            "customForwardingPath": null,
+                            "forwardingProtocol": "HttpsOnly",
+                            "backendPool": {
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/backendPools/', parameters('frontDoorName'), '-bk')]"
+                            },
+                            "cacheConfiguration": null
+                        }
+                    },
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/frontdoors/', parameters('frontDoorName'), '/routingRules/', parameters('frontDoorName'), '-rr')]"
+                }
+            ],
+            "backendPoolsSettings": {
+                "enforceCertificateNameCheck": "Enabled",
+                "sendRecvTimeoutSeconds": 30
+            }
+        }
+    }
+  ]
+}

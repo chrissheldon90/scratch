@@ -179,7 +179,7 @@ Add the following code to the end of the same file “azure-pipeline.yaml”
     parameters.dockerRegistryUrl.value: https://$(AcrName).azurecr.io
     parameters.dockerRegistryUsername.value: $(AcrName)
   jobs:
-  - deployment: Deploy ARM Template
+  - deployment: DeployARMTemplate-Web
     displayName: 'Deploy Web App ARM Template'
     environment: [Environment Name]
     strategy:
